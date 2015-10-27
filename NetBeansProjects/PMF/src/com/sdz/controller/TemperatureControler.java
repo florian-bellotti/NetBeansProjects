@@ -15,31 +15,36 @@ import javax.swing.JOptionPane;
  */
 public class TemperatureControler extends AbstractControler {
     //public double tempInCtrl = 0.00;
-    
+    private AbstractModel temp;
+   
     public TemperatureControler(AbstractModel temp) {
         super(temp);
+        this.temp = temp; 
     }
     
-    /*public void checkCondensation(String humIn) {
-        if ( Integer.valueOf(humIn) > 65 ) {
-         /*   JOptionPane op = new JOptionPane("Hi..",JOptionPane.INFORMATION_MESSAGE);
-            JDialog dialog = op.createDialog("Break");
-                    dialog.setAlwaysOnTop(true);
-                     dialog.setModal(true);
-                     dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);      
-                     dialog.setVisible(true);
+    public boolean checkDoor() {
+        boolean bool = false;
+        double nowTemp = temp.tempIn.get(temp.tempIn.size()-1);
+        
+        if (temp.tempIn.size() > 10 ) {
+            double lastTemp = temp.tempIn.get(temp.tempIn.size()-10);
+            double diffTemp = nowTemp - lastTemp;
             
-                     Thread t = new Thread(new Runnable(){
-        public void run(){
-            JOptionPane.showMessageDialog(null, "Hello");
+            if (diffTemp >= 0.5) {
+                bool = true;
+            }
         }
-    });
-  t.start();*/
-            //if ( JOptionPane.getDefaultLocale() = null ){
-               // System.out.println("Alerte par toutatis !!");
-            //}
-            
-        //} 
-    //}
+        if (nowTemp > 25.00) {
+            bool = true;
+        }
+        return bool;
+    }
+    
+    public boolean checkCondensation() {
+        boolean bool = false;
+                
+        return bool;
+    }
+
     
 }

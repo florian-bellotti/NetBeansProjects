@@ -8,12 +8,9 @@ package com.sdz.view;
 import com.sdz.controller.AbstractControler;
 import com.sdz.observer.Observer;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
@@ -25,13 +22,19 @@ import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
 import org.jfree.data.time.Millisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
-import org.jfree.data.xy.XYDataset;
 
 /**
  *
  * @author Florian
  */
 public class InterfaceGraphique extends JFrame implements Observer {
+    
+    //boolean pour afficher ou non les alertes
+    boolean boolDoor = false;
+    boolean boolCond = false;
+    
+    
+    //initialisation des différents Panel/Label/Slider
     private final JPanel container = new JPanel();
     private JLabel labelTempIn = new JLabel();
     private JLabel labelTempOut = new JLabel();
@@ -42,37 +45,45 @@ public class InterfaceGraphique extends JFrame implements Observer {
     private JLabel labelHumpIn = new JLabel();
     private JLabel labelWarnDoor = new JLabel();
     private JLabel labelWarnCond = new JLabel();
-    private JSlider framesPerSecond = new JSlider(JSlider.HORIZONTAL, 0, 30, 15);
+    private JSlider slider = new JSlider(JSlider.HORIZONTAL, 0, 30, 15);
     
     
-        /** The number of subplots. */
+    //Définition du nombre de graphiques
     public static final int SUBPLOT_COUNT_IN = 2;
     public static final int SUBPLOT_COUNT_OUT = 1;
     
-    /** The datasets. */
+    
+    //Définitin des variables de données
     private TimeSeriesCollection[] datasetsIn;
     private TimeSeriesCollection[] datasetsOut;
     
-    /** The most recent value added to series 1. */
+    
+    //Définition des varibles pour stocker la derniere valeur du graphique
     private double[] lastValueIn = new double[SUBPLOT_COUNT_IN];
     private double[] lastValueOut = new double[SUBPLOT_COUNT_OUT];
-
-    
     
     
     //L'instance de notre objet contrôleur
     private AbstractControler controler;
 
+    
+    //Définition de notre police
+    Font police = new Font("Arial", Font.BOLD, 20);
+    
+    
     public JLabel getLabelTempCons() {
         return labelTempCons;
     }
     
+    
+    //constructeur de notre classe
     public InterfaceGraphique(AbstractControler controler){                
         this.setSize(500, 750);
         this.setTitle("Pimp My Fridge");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
         this.setResizable(false);
+        initComposantConsigne();
         initComposant();                
         this.controler = controler;                
         this.setContentPane(container);
@@ -80,23 +91,50 @@ public class InterfaceGraphique extends JFrame implements Observer {
     }
     
     
+    //initialisation de notre panel de la consigne 
+    private void initComposantConsigne(){
+        //Définition des labels
+        labelTitreCons = new JLabel("Consigne :   ");
+        labelTitreCons.setFont(police);
+        labelTempCons = new JLabel("15 °C   ");
+        labelTempCons.setFont(police);
+        
+        
+        //Définition de notre Slider
+        slider.setMajorTickSpacing(10);
+        slider.setMinorTickSpacing(1);
+        slider.setPaintTicks(true);
+        slider.setPaintLabels(true);
+        SliderListener sListener = new SliderListener();
+        sListener.setIG(this);
+        slider.addChangeListener(sListener);
+        
+        
+        //Définition de notre panel
+        JPanel panConsigne = new JPanel();
+        panConsigne.setPreferredSize(new Dimension(490, 70));
+        panConsigne.add(labelTitreCons);
+        panConsigne.add(labelTempCons); 
+        panConsigne.add(slider);
+        panConsigne.setBorder(BorderFactory.createLineBorder(Color.black));
+        
+        
+        //on ajoute notre panel au container
+        container.add(panConsigne, BorderLayout.NORTH);
+    }
+    
     
     private void initComposant(){
-        Font police = new Font("Arial", Font.BOLD, 20);
         
         labelWarnDoor = new JLabel("Attention : Porte ouverte !!!");
         labelWarnDoor.setFont(police);
-        labelWarnDoor.setVisible(false);
+        labelWarnDoor.setVisible(boolDoor);
+        labelWarnDoor.setForeground(Color.red);
         
         labelWarnCond = new JLabel("Attention : Condensation !!!");
         labelWarnCond.setFont(police);
-        labelWarnCond.setVisible(false);
-        
-        labelTitreCons = new JLabel("Consigne :   ");
-        labelTitreCons.setFont(police);
-        
-        labelTempCons = new JLabel("15 °C   ");
-        labelTempCons.setFont(police);
+        labelWarnCond.setVisible(boolCond);
+        labelWarnCond.setForeground(Color.red);
         
         labelTitreTempIn = new JLabel("Intérieur :   ");
         labelTitreTempIn.setFont(police);
@@ -111,17 +149,7 @@ public class InterfaceGraphique extends JFrame implements Observer {
         labelTitreTempOut.setFont(police);
         
         labelTempOut = new JLabel("12 °C");
-        labelTempOut.setFont(police);
-        
-        
-        framesPerSecond.setMajorTickSpacing(10);
-        framesPerSecond.setMinorTickSpacing(1);
-        framesPerSecond.setPaintTicks(true);
-        framesPerSecond.setPaintLabels(true);
-        SliderListener sListener = new SliderListener();
-        sListener.setIG(this);
-        framesPerSecond.addChangeListener(sListener);
-        
+        labelTempOut.setFont(police);        
         
         final CombinedDomainXYPlot plotIn = new CombinedDomainXYPlot(new DateAxis("Temps"));
         final CombinedDomainXYPlot plotOut = new CombinedDomainXYPlot(new DateAxis("Temps"));
@@ -200,15 +228,6 @@ public class InterfaceGraphique extends JFrame implements Observer {
         chartPanelOut.setPreferredSize(new java.awt.Dimension(480, 200));
         chartPanelOut.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         
-    
-        JPanel panConsigne = new JPanel();
-        panConsigne.setPreferredSize(new Dimension(490, 70));
-        panConsigne.add(labelTitreCons);
-        panConsigne.add(labelTempCons); 
-        panConsigne.add(framesPerSecond);
-        panConsigne.setBorder(BorderFactory.createLineBorder(Color.black));
-
-        
         //panel température intérieure
         JPanel panTempIn = new JPanel();
         panTempIn.setPreferredSize(new Dimension(490, 400));
@@ -229,9 +248,6 @@ public class InterfaceGraphique extends JFrame implements Observer {
         panTempOut.add(chartPanelOut);
         panTempOut.setBorder(BorderFactory.createLineBorder(Color.black));
         
-        
-        //container.add(content, BorderLayout.NORTH);
-        container.add(panConsigne, BorderLayout.NORTH);
         container.add(panTempIn, BorderLayout.NORTH);
         container.add(panTempOut, BorderLayout.NORTH);
     }
@@ -240,7 +256,11 @@ public class InterfaceGraphique extends JFrame implements Observer {
     //Implémentation du pattern observer
     @Override
     public void update(String tempIn, String humIn, String tempOut) {
-        //controler.checkCondensation(humIn);
+        boolDoor = controler.checkDoor();
+        labelWarnDoor.setVisible(boolDoor);
+        
+        boolean boolCond = controler.checkCondensation();
+        labelWarnCond.setVisible(boolCond);
         
         this.lastValueIn[0] = Double.valueOf(tempIn);
         this.lastValueIn[1] = Double.valueOf(humIn);
