@@ -9,6 +9,7 @@ import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Enumeration;
 
@@ -20,20 +21,10 @@ import java.util.Enumeration;
  * @author Florian
  */
 public class Temperature extends AbstractModel {
-        
-    //Définit la dernière température intérieure
-    public void setTempIn(int tempIn) {
-        this.tempIn = tempIn;
-    }
-    
-    //Réinitialise tout
-    @Override
-    public void reset(){
-        this.tempIn = 0;
-    }
-    
+            
     public void initialize() {
         CommPortIdentifier portId = null;
+        
 	Enumeration portEnum = CommPortIdentifier.getPortIdentifiers();
 
         //First, Find an instance of serial port as set in PORT_NAMES.
@@ -94,22 +85,31 @@ public class Temperature extends AbstractModel {
 		String inputLine=input.readLine();
                                 
                 this.resistance = inputLine.split("-");
-                this.resIn  = Float.valueOf(this.resistance[0]); 
-                //resOut = Float.valueOf(resistance[1]); 
+                this.tempIn.add(Integer.valueOf(this.resistance[0]));
+                //this.tempIn  = Float.valueOf(this.resistance[0]); 
+                this.humIn = Float.valueOf(this.resistance[1]); 
+                this.resOut = Float.valueOf(this.resistance[2]); 
+                //this.test = Float.valueOf(this.resistance[3]); 
                              
-                this.tempIn = (1 / (A + B * Math.log(this.resIn) + C * Math.pow(Math.log(this.resIn),3))) - 273.15;
+                this.resOut = (1 / (A + B * Math.log(this.resOut) + C * Math.pow(Math.log(this.resOut),3))) - 273.15;
+                this.tempOut.add((int)this.resOut);
+                
                 //tempOut = (1 / (A + B * Math.log(resOut) + C * Math.pow(Math.log(resOut),3))) - 273.15;
                                 
                 //dataTemperature.setLastTempIn((int)tempIn);
-                System.out.println("tempIn : " + (int)this.tempIn  + " C°");
+                //System.out.println("tempIn : " + (int)this.tempIn  + " C°");
                 
                 //On lance aussi la mise à jour !
-                notifyObserver(String.valueOf((int)this.tempIn), String.valueOf((int)this.tempIn));
+                notifyObserver(String.valueOf((int)this.tempIn.get(tempIn.size()-1)), String.valueOf((int)this.humIn), String.valueOf((int)this.tempOut.get(tempOut.size()-1)));
                 
-                //System.out.println("tempIn : " + (int)tempIn + " C°;     tempOut : " + (int)tempOut + " C°");
+                System.out.println("Consigne : " + (int)this.tempIn.get(tempIn.size()-1) + " C°;     tempOut : " + (int)this.tempOut.get(tempOut.size()-1) + " C°");
             } catch (Exception e) {
                 System.err.println(e.toString());
             }
         }
+    }
+    
+    public synchronized void writeData(String data) throws IOException {
+        output.write(data.getBytes());
     }
 }

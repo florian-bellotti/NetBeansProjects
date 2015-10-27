@@ -8,6 +8,7 @@ package com.sdz.model;
 import com.sdz.observer.Observer;
 import gnu.io.*;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
@@ -17,9 +18,13 @@ import java.util.ArrayList;
  */
 public abstract class AbstractModel implements SerialPortEventListener {
     
-    protected double tempIn = 0;
+    //protected double tempIn = 0;
+    protected ArrayList<Integer> tempIn = new ArrayList<>(); 
+    protected ArrayList<Integer> tempOut = new ArrayList<>();
+    protected double humIn = 0;
+    protected double test = 0;
     //protected double tempOut = 0;
-    protected double resIn = 0;
+    protected double resOut = 0;
     //protected double resOut = 0;
     protected ArrayList<Observer> listObserver = new ArrayList<>();   
     SerialPort serialPort;
@@ -52,30 +57,22 @@ public abstract class AbstractModel implements SerialPortEventListener {
     
     public abstract void initialize();
     
-        
-    //Efface 
-    public abstract void reset();
-    
-    
-    
-    //Définit la dernière température intérieure
-    public abstract void setTempIn(int tempIn);
-    
-    
-    
+  
     //Implémentation du pattern observer
     public void addObserver(Observer obs) {
       this.listObserver.add(obs);
     }
 
-    public void notifyObserver(String tempIn, String tempOut) {
+    public void notifyObserver(String tempIn, String humIn, String tempOut) {
         //str = str.substring(1, str.length());
 
         for(Observer obs : listObserver)
-            obs.update(tempIn, tempOut);
+            obs.update(tempIn, humIn, tempOut);
     }
 
     public void removeObserver() {
         listObserver = new ArrayList<Observer>();
-    }  
+    } 
+    
+
 }
