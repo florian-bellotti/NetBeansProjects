@@ -18,7 +18,9 @@ import java.util.ArrayList;
 public abstract class AbstractModel implements SerialPortEventListener {
     
     protected double tempIn = 0;
+    //protected double tempOut = 0;
     protected double resIn = 0;
+    //protected double resOut = 0;
     protected ArrayList<Observer> listObserver = new ArrayList<>();   
     SerialPort serialPort;
     protected static final String PORT_NAMES[] = { 
@@ -66,11 +68,11 @@ public abstract class AbstractModel implements SerialPortEventListener {
       this.listObserver.add(obs);
     }
 
-    public void notifyObserver(String str) {
-        str = str.substring(1, str.length());
+    public void notifyObserver(String tempIn, String tempOut) {
+        //str = str.substring(1, str.length());
 
         for(Observer obs : listObserver)
-            obs.update(str);
+            obs.update(tempIn, tempOut);
     }
 
     public void removeObserver() {

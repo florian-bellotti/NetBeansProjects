@@ -16,6 +16,21 @@ public class main {
         //Instanciation de notre modèle
         AbstractModel temp = new Temperature();
         //Création du contrôleur
+        
+        
+        //arduinoIO main = new arduinoIO();
+	temp.initialize();
+	Thread t=new Thread() {
+		public void run() {
+			//the following line will keep this app alive for 1000 seconds,
+			//waiting for events to occur and responding to them (printing incoming messages to console).
+			try {Thread.sleep(1000000);} catch (InterruptedException ie) {}
+		}
+	};
+	t.start();
+	System.out.println("Started");
+        
+        
         AbstractControler controler = new TemperatureControler(temp);
         //Création de notre fenêtre avec le contrôleur en paramètre
         InterfaceGraphique interfaceGraph = new InterfaceGraphique(controler);

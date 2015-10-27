@@ -16,13 +16,16 @@ import javax.swing.*;
  */
 public class InterfaceGraphique extends JFrame implements Observer {
     private final JPanel container = new JPanel();
-    private JLabel ecran = new JLabel();
+    private JLabel labelTempIn = new JLabel();
+    private JLabel labelTempOut = new JLabel();
+    private JLabel labelTextTempIn = new JLabel();
+    private JLabel labelTextTempOut = new JLabel();
     
     //L'instance de notre objet contrôleur
     private AbstractControler controler;
     
     public InterfaceGraphique(AbstractControler controler){                
-        this.setSize(240, 260);
+        this.setSize(500, 300);
         this.setTitle("Pimp My Fridge");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
@@ -37,16 +40,31 @@ public class InterfaceGraphique extends JFrame implements Observer {
     
     private void initComposant(){
         Font police = new Font("Arial", Font.BOLD, 20);
-        ecran = new JLabel("0");
-        ecran.setFont(police);
-        //ecran.setText("blabla");
-        JPanel panEcran = new JPanel();
-        panEcran.setPreferredSize(new Dimension(220, 30));
+        labelTextTempIn= new JLabel("Température intérieure :");
+        labelTextTempIn.setFont(police);
+        labelTempIn = new JLabel("21 °C");
+        labelTempIn.setFont(police);
+        labelTextTempOut= new JLabel("Température exterieure :");
+        labelTextTempOut.setFont(police);
+        labelTempOut = new JLabel("12 °C");
+        labelTempOut.setFont(police);
         
-        panEcran.add(ecran);
-        panEcran.setBorder(BorderFactory.createLineBorder(Color.black));
+        //panel température intérieure
+        JPanel panTempIn = new JPanel();
+        panTempIn.setPreferredSize(new Dimension(340, 35));
+        panTempIn.add(labelTextTempIn);
+        panTempIn.add(labelTempIn);
+        panTempIn.setBorder(BorderFactory.createLineBorder(Color.black));
         
-        container.add(panEcran, BorderLayout.NORTH);
+        //panel température extérieure
+        JPanel panTempOut = new JPanel();
+        panTempOut.setPreferredSize(new Dimension(340, 35));
+        panTempOut.add(labelTextTempOut);
+        panTempOut.add(labelTempOut);
+        panTempOut.setBorder(BorderFactory.createLineBorder(Color.black));
+        
+        container.add(panTempIn, BorderLayout.NORTH);
+        container.add(panTempOut, BorderLayout.NORTH);
         
         /*JPanel temperaturePanel = new JPanel();        
         temperaturePanel.setPreferredSize(new Dimension(200, 225));
@@ -56,8 +74,9 @@ public class InterfaceGraphique extends JFrame implements Observer {
     
     //Implémentation du pattern observer
     @Override
-    public void update(String str) {
-        ecran.setText(str);
+    public void update(String tempIn, String tempOut) {
+        labelTempIn.setText(tempIn + " °C");
+        labelTempOut.setText(tempOut + " °C");
     }  
     
 }

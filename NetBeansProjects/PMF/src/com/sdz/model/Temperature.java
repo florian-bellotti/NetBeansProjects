@@ -94,7 +94,7 @@ public class Temperature extends AbstractModel {
 		String inputLine=input.readLine();
                                 
                 this.resistance = inputLine.split("-");
-                resIn  = Float.valueOf(resistance[0]); 
+                this.resIn  = Float.valueOf(this.resistance[0]); 
                 //resOut = Float.valueOf(resistance[1]); 
                              
                 this.tempIn = (1 / (A + B * Math.log(this.resIn) + C * Math.pow(Math.log(this.resIn),3))) - 273.15;
@@ -104,7 +104,7 @@ public class Temperature extends AbstractModel {
                 System.out.println("tempIn : " + (int)this.tempIn  + " C°");
                 
                 //On lance aussi la mise à jour !
-                notifyObserver(String.valueOf((int)this.tempIn));
+                notifyObserver(String.valueOf((int)this.tempIn), String.valueOf((int)this.tempIn));
                 
                 //System.out.println("tempIn : " + (int)tempIn + " C°;     tempOut : " + (int)tempOut + " C°");
             } catch (Exception e) {
