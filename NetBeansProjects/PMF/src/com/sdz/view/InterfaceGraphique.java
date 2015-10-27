@@ -31,7 +31,7 @@ import org.jfree.data.xy.XYDataset;
  *
  * @author Florian
  */
-public class InterfaceGraphique extends JFrame implements Observer, ActionListener {
+public class InterfaceGraphique extends JFrame implements Observer {
     private final JPanel container = new JPanel();
     private JLabel labelTempIn = new JLabel();
     private JLabel labelTempOut = new JLabel();
@@ -44,13 +44,13 @@ public class InterfaceGraphique extends JFrame implements Observer, ActionListen
     
     
         /** The number of subplots. */
-    public static final int SUBPLOT_COUNT = 2;
+    public static final int SUBPLOT_COUNT_IN = 2;
     
     /** The datasets. */
     private TimeSeriesCollection[] datasets;
     
     /** The most recent value added to series 1. */
-    private double[] lastValue = new double[SUBPLOT_COUNT];
+    private double[] lastValue = new double[SUBPLOT_COUNT_IN];
 
     
     
@@ -111,12 +111,12 @@ public class InterfaceGraphique extends JFrame implements Observer, ActionListen
         
         
         final CombinedDomainXYPlot plot = new CombinedDomainXYPlot(new DateAxis("Temps"));
-        this.datasets = new TimeSeriesCollection[SUBPLOT_COUNT];
+        this.datasets = new TimeSeriesCollection[SUBPLOT_COUNT_IN];
         
         String[] nameSeries = {"Température","Humidité"};
         String[] nameAxis = {"Température (°C)","pourcentage (%)"};
         
-        for (int i = 0; i < SUBPLOT_COUNT; i++) {
+        for (int i = 0; i < SUBPLOT_COUNT_IN; i++) {
             this.lastValue[i] = 100.0;
             final TimeSeries series = new TimeSeries(nameSeries[i], Millisecond.class);
             this.datasets[i] = new TimeSeriesCollection(series);
@@ -143,7 +143,7 @@ public class InterfaceGraphique extends JFrame implements Observer, ActionListen
   //      plot.setAxisOffset(new Spacer(Spacer.ABSOLUTE, 4, 4, 4, 4));
         final ValueAxis axis = plot.getDomainAxis();
         axis.setAutoRange(true);
-        axis.setFixedAutoRange(120000.0);  // 60 seconds
+        axis.setFixedAutoRange(240000.0);  // 60 seconds
         
         //final JPanel content = new JPanel(new BorderLayout());
 
@@ -226,37 +226,18 @@ public class InterfaceGraphique extends JFrame implements Observer, ActionListen
     //Implémentation du pattern observer
     @Override
     public void update(String tempIn, String humIn, String tempOut) {
+        this.lastValue[0] = Double.valueOf(tempIn);
+        this.lastValue[1] = Double.valueOf(humIn);
+        
         labelTempIn.setText(tempIn + " °C   ");
         labelHumpIn.setText(humIn + " %   ");
         labelTempOut.setText(tempOut + " °C   ");
-    }  
-   
-
-    
-    public void actionPerformed(final ActionEvent e) {
- 
-        for (int i = 0; i < SUBPLOT_COUNT; i++) {
-            if (e.getActionCommand().endsWith(String.valueOf(i))) {
-                final Millisecond now = new Millisecond();
-                System.out.println("Now = " + now.toString());
-                this.lastValue[i] = this.lastValue[i] * (0.90 + 0.2 * Math.random());
-                this.datasets[i].getSeries(0).add(new Millisecond(), this.lastValue[i]);       
-            }
-        }
-
-        if (e.getActionCommand().equals("ADD_ALL")) {
+        
+        for (int i = 0; i < SUBPLOT_COUNT_IN; i++) {
             final Millisecond now = new Millisecond();
-            System.out.println("Now = " + now.toString());
-            for (int i = 0; i < SUBPLOT_COUNT; i++) {
-                this.lastValue[i] = this.lastValue[i] * (0.90 + 0.2 * Math.random());
-                this.datasets[i].getSeries(0).add(new Millisecond(), this.lastValue[i]);       
-            }
+            this.datasets[i].getSeries(0).add(new Millisecond(), this.lastValue[i]);  
         }
-
-    }
-    
-    
-    
+    }  
 }
 
 class SliderListener implements ChangeListener{
