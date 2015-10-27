@@ -19,8 +19,8 @@ import java.util.ArrayList;
 public abstract class AbstractModel implements SerialPortEventListener {
     
     //protected double tempIn = 0;
-    protected ArrayList<Integer> tempIn = new ArrayList<>(); 
-    protected ArrayList<Integer> tempOut = new ArrayList<>();
+    public ArrayList<Float> tempIn = new ArrayList<>(); 
+    protected ArrayList<Float> tempOut = new ArrayList<>();
     protected double humIn = 0;
     protected double test = 0;
     //protected double tempOut = 0;

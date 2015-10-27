@@ -40,17 +40,22 @@ public class InterfaceGraphique extends JFrame implements Observer {
     private JLabel labelTitreCons = new JLabel();
     private JLabel labelTitreTempOut = new JLabel();
     private JLabel labelHumpIn = new JLabel();
+    private JLabel labelWarnDoor = new JLabel();
+    private JLabel labelWarnCond = new JLabel();
     private JSlider framesPerSecond = new JSlider(JSlider.HORIZONTAL, 0, 30, 15);
     
     
         /** The number of subplots. */
     public static final int SUBPLOT_COUNT_IN = 2;
+    public static final int SUBPLOT_COUNT_OUT = 1;
     
     /** The datasets. */
-    private TimeSeriesCollection[] datasets;
+    private TimeSeriesCollection[] datasetsIn;
+    private TimeSeriesCollection[] datasetsOut;
     
     /** The most recent value added to series 1. */
-    private double[] lastValue = new double[SUBPLOT_COUNT_IN];
+    private double[] lastValueIn = new double[SUBPLOT_COUNT_IN];
+    private double[] lastValueOut = new double[SUBPLOT_COUNT_OUT];
 
     
     
@@ -63,7 +68,7 @@ public class InterfaceGraphique extends JFrame implements Observer {
     }
     
     public InterfaceGraphique(AbstractControler controler){                
-        this.setSize(500, 600);
+        this.setSize(500, 750);
         this.setTitle("Pimp My Fridge");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
@@ -78,6 +83,14 @@ public class InterfaceGraphique extends JFrame implements Observer {
     
     private void initComposant(){
         Font police = new Font("Arial", Font.BOLD, 20);
+        
+        labelWarnDoor = new JLabel("Attention : Porte ouverte !!!");
+        labelWarnDoor.setFont(police);
+        labelWarnDoor.setVisible(false);
+        
+        labelWarnCond = new JLabel("Attention : Condensation !!!");
+        labelWarnCond.setFont(police);
+        labelWarnCond.setVisible(false);
         
         labelTitreCons = new JLabel("Consigne :   ");
         labelTitreCons.setFont(police);
@@ -110,85 +123,83 @@ public class InterfaceGraphique extends JFrame implements Observer {
         framesPerSecond.addChangeListener(sListener);
         
         
-        final CombinedDomainXYPlot plot = new CombinedDomainXYPlot(new DateAxis("Temps"));
-        this.datasets = new TimeSeriesCollection[SUBPLOT_COUNT_IN];
+        final CombinedDomainXYPlot plotIn = new CombinedDomainXYPlot(new DateAxis("Temps"));
+        final CombinedDomainXYPlot plotOut = new CombinedDomainXYPlot(new DateAxis("Temps"));
+        this.datasetsIn = new TimeSeriesCollection[SUBPLOT_COUNT_IN];
+        this.datasetsOut = new TimeSeriesCollection[SUBPLOT_COUNT_OUT];
         
-        String[] nameSeries = {"Température","Humidité"};
-        String[] nameAxis = {"Température (°C)","pourcentage (%)"};
+        String[] nameSeriesIn = {"Température","Humidité"};
+        String[] nameAxisIn = {"Température (°C)","pourcentage (%)"};
         
         for (int i = 0; i < SUBPLOT_COUNT_IN; i++) {
-            this.lastValue[i] = 100.0;
-            final TimeSeries series = new TimeSeries(nameSeries[i], Millisecond.class);
-            this.datasets[i] = new TimeSeriesCollection(series);
-            final NumberAxis rangeAxis = new NumberAxis(nameAxis[i]);
-            rangeAxis.setAutoRangeIncludesZero(false);
-            final XYPlot subplot = new XYPlot(
-                    this.datasets[i], null, rangeAxis, new StandardXYItemRenderer()
+            this.lastValueIn[i] = 100.0;
+            final TimeSeries seriesIn = new TimeSeries(nameSeriesIn[i], Millisecond.class);
+            this.datasetsIn[i] = new TimeSeriesCollection(seriesIn);
+            final NumberAxis rangeAxisIn = new NumberAxis(nameAxisIn[i]);
+            rangeAxisIn.setAutoRangeIncludesZero(false);
+            final XYPlot subplotIn = new XYPlot(
+                    this.datasetsIn[i], null, rangeAxisIn, new StandardXYItemRenderer()
             );
-            subplot.setBackgroundPaint(Color.lightGray);
-            subplot.setDomainGridlinePaint(Color.white);
-            subplot.setRangeGridlinePaint(Color.white);
-            plot.add(subplot);
+            subplotIn.setBackgroundPaint(Color.lightGray);
+            subplotIn.setDomainGridlinePaint(Color.white);
+            subplotIn.setRangeGridlinePaint(Color.white);
+            plotIn.add(subplotIn);
+        }
+        
+        String[] nameSeriesOut = {"Température"};
+        String[] nameAxisOut = {"Température (°C)"};
+        
+        for (int i = 0; i < SUBPLOT_COUNT_OUT; i++) {
+            this.lastValueOut[i] = 100.0;
+            final TimeSeries seriesOut = new TimeSeries(nameSeriesOut[i], Millisecond.class);
+            this.datasetsOut[i] = new TimeSeriesCollection(seriesOut);
+            final NumberAxis rangeAxisOut = new NumberAxis(nameAxisOut[i]);
+            rangeAxisOut.setAutoRangeIncludesZero(false);
+            final XYPlot subplotOut = new XYPlot(
+                    this.datasetsOut[i], null, rangeAxisOut, new StandardXYItemRenderer()
+            );
+            subplotOut.setBackgroundPaint(Color.lightGray);
+            subplotOut.setDomainGridlinePaint(Color.white);
+            subplotOut.setRangeGridlinePaint(Color.white);
+            plotOut.add(subplotOut);
         }
 
-        final JFreeChart chart = new JFreeChart("", plot);
-//        chart.getLegend().setAnchor(Legend.EAST);
-        chart.setBorderPaint(Color.black);
-        chart.setBorderVisible(true);
-        chart.setBackgroundPaint(Color.white);
+        final JFreeChart chartIn = new JFreeChart("", plotIn);
+        chartIn.setBorderPaint(Color.black);
+        chartIn.setBorderVisible(true);
+        chartIn.setBackgroundPaint(Color.white);
         
-        plot.setBackgroundPaint(Color.lightGray);
-        plot.setDomainGridlinePaint(Color.white);
-        plot.setRangeGridlinePaint(Color.white);
-  //      plot.setAxisOffset(new Spacer(Spacer.ABSOLUTE, 4, 4, 4, 4));
-        final ValueAxis axis = plot.getDomainAxis();
-        axis.setAutoRange(true);
-        axis.setFixedAutoRange(240000.0);  // 60 seconds
+        final JFreeChart chartOut = new JFreeChart("", plotOut);
+        chartOut.setBorderPaint(Color.black);
+        chartOut.setBorderVisible(true);
+        chartOut.setBackgroundPaint(Color.white);
         
-        //final JPanel content = new JPanel(new BorderLayout());
+        plotIn.setBackgroundPaint(Color.lightGray);
+        plotIn.setDomainGridlinePaint(Color.white);
+        plotIn.setRangeGridlinePaint(Color.white);
+        
+        plotOut.setBackgroundPaint(Color.lightGray);
+        plotOut.setDomainGridlinePaint(Color.white);
+        plotOut.setRangeGridlinePaint(Color.white);
+        
+        final ValueAxis axisIn = plotIn.getDomainAxis();
+        axisIn.setAutoRange(true);
+        axisIn.setFixedAutoRange(240000.0);  // 60 seconds
+        
+        final ValueAxis axisOut = plotOut.getDomainAxis();
+        axisOut.setAutoRange(true);
+        axisOut.setFixedAutoRange(240000.0);  // 60 seconds
+        
+        final ChartPanel chartPanelIn = new ChartPanel(chartIn);
+        final ChartPanel chartPanelOut = new ChartPanel(chartOut);
 
-        final ChartPanel chartPanel = new ChartPanel(chart);
-        //content.add(chartPanel);
-
-        //final JPanel buttonPanel = new JPanel(new FlowLayout());
         
-        /*for (int i = 0; i < SUBPLOT_COUNT; i++) {
-            final JButton button = new JButton("Series " + i);
-            button.setActionCommand("ADD_DATA_" + i);
-            button.addActionListener(this);
-            buttonPanel.add(button);
-        }
-        final JButton buttonAll = new JButton("ALL");
-        buttonAll.setActionCommand("ADD_ALL");
-        buttonAll.addActionListener(this);
-        buttonPanel.add(buttonAll);
+        chartPanelIn.setPreferredSize(new java.awt.Dimension(480, 300));
+        chartPanelIn.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         
-        content.add(buttonPanel, BorderLayout.SOUTH);*/
-        chartPanel.setPreferredSize(new java.awt.Dimension(480, 300));
-        chartPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        //setContentPane(content);
+        chartPanelOut.setPreferredSize(new java.awt.Dimension(480, 200));
+        chartPanelOut.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         
-        
-        /*
-        this.series = new TimeSeries("Température", Millisecond.class);
-        final TimeSeriesCollection dataset = new TimeSeriesCollection(this.series);
-        final JFreeChart chart = createChart(dataset);
-
-        final ChartPanel chartPanel = new ChartPanel(chart);
-        //final JButton button = new JButton("Add New Data Item");
-        //button.setActionCommand("ADD_DATA");
-        //button.addActionListener(this);
-
-        JPanel content = new JPanel();
-        content.add(chartPanel);
-        //content.add(button, BorderLayout.SOUTH);
-        chartPanel.setPreferredSize(new java.awt.Dimension(400, 200));
-        content.setBorder(BorderFactory.createLineBorder(Color.black));
-        //setContentPane(content);
-        
-        
-        
-        */
     
         JPanel panConsigne = new JPanel();
         panConsigne.setPreferredSize(new Dimension(490, 70));
@@ -200,19 +211,22 @@ public class InterfaceGraphique extends JFrame implements Observer {
         
         //panel température intérieure
         JPanel panTempIn = new JPanel();
-        panTempIn.setPreferredSize(new Dimension(490, 350));
+        panTempIn.setPreferredSize(new Dimension(490, 400));
         panTempIn.add(labelTitreTempIn);
         panTempIn.add(labelTempIn); 
         panTempIn.add(labelHumpIn);
-        panTempIn.add(chartPanel);
+        panTempIn.add(chartPanelIn);
+        panTempIn.add(labelWarnDoor);
+        panTempIn.add(labelWarnCond);
         panTempIn.setBorder(BorderFactory.createLineBorder(Color.black));
         
         
         //panel température extérieure
         JPanel panTempOut = new JPanel();
-        panTempOut.setPreferredSize(new Dimension(490, 100));
+        panTempOut.setPreferredSize(new Dimension(490, 240));
         panTempOut.add(labelTitreTempOut);
         panTempOut.add(labelTempOut);
+        panTempOut.add(chartPanelOut);
         panTempOut.setBorder(BorderFactory.createLineBorder(Color.black));
         
         
@@ -226,8 +240,11 @@ public class InterfaceGraphique extends JFrame implements Observer {
     //Implémentation du pattern observer
     @Override
     public void update(String tempIn, String humIn, String tempOut) {
-        this.lastValue[0] = Double.valueOf(tempIn);
-        this.lastValue[1] = Double.valueOf(humIn);
+        //controler.checkCondensation(humIn);
+        
+        this.lastValueIn[0] = Double.valueOf(tempIn);
+        this.lastValueIn[1] = Double.valueOf(humIn);
+        this.lastValueOut[0] = Double.valueOf(tempOut);
         
         labelTempIn.setText(tempIn + " °C   ");
         labelHumpIn.setText(humIn + " %   ");
@@ -235,7 +252,12 @@ public class InterfaceGraphique extends JFrame implements Observer {
         
         for (int i = 0; i < SUBPLOT_COUNT_IN; i++) {
             final Millisecond now = new Millisecond();
-            this.datasets[i].getSeries(0).add(new Millisecond(), this.lastValue[i]);  
+            this.datasetsIn[i].getSeries(0).add(new Millisecond(), this.lastValueIn[i]);  
+        }
+        
+        for (int i = 0; i < SUBPLOT_COUNT_OUT; i++) {
+            final Millisecond now = new Millisecond();
+            this.datasetsOut[i].getSeries(0).add(new Millisecond(), this.lastValueOut[i]);  
         }
     }  
 }

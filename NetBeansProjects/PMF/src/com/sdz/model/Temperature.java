@@ -85,14 +85,14 @@ public class Temperature extends AbstractModel {
 		String inputLine=input.readLine();
                                 
                 this.resistance = inputLine.split("-");
-                this.tempIn.add(Integer.valueOf(this.resistance[0]));
+                this.tempIn.add(Float.valueOf(this.resistance[0]));
                 //this.tempIn  = Float.valueOf(this.resistance[0]); 
                 this.humIn = Float.valueOf(this.resistance[1]); 
                 this.resOut = Float.valueOf(this.resistance[2]); 
                 //this.test = Float.valueOf(this.resistance[3]); 
                              
                 this.resOut = (1 / (A + B * Math.log(this.resOut) + C * Math.pow(Math.log(this.resOut),3))) - 273.15;
-                this.tempOut.add((int)this.resOut);
+                this.tempOut.add((float)this.resOut);
                 
                 //tempOut = (1 / (A + B * Math.log(resOut) + C * Math.pow(Math.log(resOut),3))) - 273.15;
                                 
@@ -100,9 +100,9 @@ public class Temperature extends AbstractModel {
                 //System.out.println("tempIn : " + (int)this.tempIn  + " C°");
                 
                 //On lance aussi la mise à jour !
-                notifyObserver(String.valueOf((int)this.tempIn.get(tempIn.size()-1)), String.valueOf((int)this.humIn), String.valueOf((int)this.tempOut.get(tempOut.size()-1)));
+                notifyObserver(String.valueOf((float)this.tempIn.get(tempIn.size()-1)), String.valueOf((int)this.humIn), String.valueOf((float)this.tempOut.get(tempOut.size()-1)));
                 
-                System.out.println("Consigne : " + (int)this.tempIn.get(tempIn.size()-1) + " C°;     tempOut : " + (int)this.tempOut.get(tempOut.size()-1) + " C°");
+                //System.out.println("Consigne : " + (float)this.tempIn.get(tempIn.size()-1) + " C°;     tempOut : " + (int)this.tempOut.get(tempOut.size()-1) + " C°");
             } catch (Exception e) {
                 System.err.println(e.toString());
             }

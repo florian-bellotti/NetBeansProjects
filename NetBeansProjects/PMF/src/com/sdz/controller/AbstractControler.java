@@ -18,4 +18,6 @@ public abstract class AbstractControler {
     public AbstractControler(AbstractModel temp){
         this.temp = temp;
    }
+    
+    //public abstract void checkCondensation(String humIn);
 }
