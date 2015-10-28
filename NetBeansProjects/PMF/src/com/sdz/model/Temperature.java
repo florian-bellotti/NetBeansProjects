@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.sdz.model;
 
 import gnu.io.CommPortIdentifier;
@@ -14,14 +9,9 @@ import java.io.InputStreamReader;
 import java.util.Enumeration;
 
 
-;
-
-/**
- *
- * @author Florian
- */
 public class Temperature extends AbstractModel {
             
+    @Override
     public void initialize() {
         CommPortIdentifier portId = null;
         
@@ -78,7 +68,9 @@ public class Temperature extends AbstractModel {
 
     /**
      * Handle an event on the serial port. Read the data and print it.
+     * @param oEvent
     */
+    @Override
     public synchronized void serialEvent(SerialPortEvent oEvent) {
 	if (oEvent.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
             try {
@@ -86,34 +78,21 @@ public class Temperature extends AbstractModel {
                                 
                 this.resistance = inputLine.split("-");
                 this.tempIn.add(Float.valueOf(this.resistance[0]));
-                //this.tempIn  = Float.valueOf(this.resistance[0]); 
                 this.humIn = Float.valueOf(this.resistance[1]); 
                 this.resOut = Float.valueOf(this.resistance[2]); 
-                if (this.resistance.length >= 4) {
-                //this.test = Float.valueOf(this.resistance[3]); 
-                System.out.println(this.resistance[3]);
-                }
                 
                 this.resOut = (1 / (A + B * Math.log(this.resOut) + C * Math.pow(Math.log(this.resOut),3))) - 273.15;
                 this.tempOut.add((float)this.resOut);
                 
-                //tempOut = (1 / (A + B * Math.log(resOut) + C * Math.pow(Math.log(resOut),3))) - 273.15;
-                                
-                //dataTemperature.setLastTempIn((int)tempIn);
-                //System.out.println("tempIn : " + (int)this.tempIn  + " C°");
-                
-                //On lance aussi la mise à jour !
                 notifyObserver(String.valueOf((float)this.tempIn.get(tempIn.size()-1)), String.valueOf((int)this.humIn), String.valueOf((float)this.tempOut.get(tempOut.size()-1)));
-                
-                //System.out.println("Consigne : " + (float)this.tempIn.get(tempIn.size()-1) + " C°;     tempOut : " + (int)this.tempOut.get(tempOut.size()-1) + " C°");
-            } catch (Exception e) {
+                } catch (IOException | NumberFormatException e) {
                 System.err.println(e.toString());
             }
         }
     }
     
+    @Override
     public void writeData(String data) throws IOException {
-        System.out.println(data);
         output.write(data.getBytes());
     }
 }

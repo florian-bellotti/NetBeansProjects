@@ -1,11 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.sdz.view;
 
-import arduino.data.control.Const;
 import arduino.soundplayer.JavaxSoundPlayer;
 import com.sdz.controller.AbstractControler;
 import com.sdz.observer.Observer;
@@ -28,16 +22,12 @@ import org.jfree.data.time.Millisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
-/**
- *
- * @author Florian
- */
+
 public class InterfaceGraphique extends JFrame implements Observer {
     
     //boolean pour afficher ou non les alertes
     boolean boolDoor = false;
     boolean boolCond = false;
-    
     
     //initialisation des différents Panel/Label/Slider
     private final JPanel container = new JPanel();
@@ -50,38 +40,34 @@ public class InterfaceGraphique extends JFrame implements Observer {
     private JLabel labelHumpIn = new JLabel();
     private JLabel labelWarnDoor = new JLabel();
     private JLabel labelWarnCond = new JLabel();
+    private JLabel labelPointRosee = new JLabel();
     private JSlider slider = new JSlider(JSlider.HORIZONTAL, 0, 30, 15);
     private JavaxSoundPlayer jsp;
-    
     
     //Définition du nombre de graphiques
     public static final int SUBPLOT_COUNT_IN = 2;
     public static final int SUBPLOT_COUNT_OUT = 1;
     
-    
     //Définitin des variables de données
     private TimeSeriesCollection[] datasetsIn;
     private TimeSeriesCollection[] datasetsOut;
-    
-    
+
     //Définition des varibles pour stocker la derniere valeur du graphique
-    private double[] lastValueIn = new double[SUBPLOT_COUNT_IN];
-    private double[] lastValueOut = new double[SUBPLOT_COUNT_OUT];
-    
+    private final double[] lastValueIn = new double[SUBPLOT_COUNT_IN];
+    private final double[] lastValueOut = new double[SUBPLOT_COUNT_OUT];
     
     //L'instance de notre objet contrôleur
     private AbstractControler controler;
 
-    
     //Définition de notre police
     Font police = new Font("Arial", Font.BOLD, 20);
     
     public int consigne = 15;
+    public static final String _SOUND_PATH = System.getProperty("user.dir") + "/sounds/mario.wav"; 
     
     public JLabel getLabelTempCons() {
         return labelTempCons;
     }
-    
     
     //constructeur de notre classe
     public InterfaceGraphique(AbstractControler controler) throws Exception{                
@@ -91,22 +77,20 @@ public class InterfaceGraphique extends JFrame implements Observer {
         this.setLocationRelativeTo(null);
         this.setResizable(false);
         initComposantConsigne();
-        initComposant();                
+        initComposantInt();
+        initComposantExt();                
         this.controler = controler;                
         this.setContentPane(container);
         this.setVisible(true);
     }
     
-    
     //initialisation de notre panel de la consigne 
-    private void initComposantConsigne(){
-        
+    private void initComposantConsigne(){  
         //Définition des labels
         labelTitreCons = new JLabel("Consigne :   ");
         labelTitreCons.setFont(police);
         labelTempCons = new JLabel("15 °C   ");
         labelTempCons.setFont(police);
-        
         
         //Définition de notre Slider
         slider.setMajorTickSpacing(10);
@@ -126,7 +110,6 @@ public class InterfaceGraphique extends JFrame implements Observer {
             }
          });
         
-        
         //Définition de notre panel
         JPanel panConsigne = new JPanel();
         panConsigne.setPreferredSize(new Dimension(490, 70));
@@ -135,46 +118,41 @@ public class InterfaceGraphique extends JFrame implements Observer {
         panConsigne.add(slider);
         panConsigne.setBorder(BorderFactory.createLineBorder(Color.black));
         
-        
         //on ajoute notre panel au container
         container.add(panConsigne, BorderLayout.NORTH);
     }
     
-    
-    private void initComposant() throws Exception{
+    //initialisation de notre panel du frigo
+    private void initComposantInt(){
+        //label de warning pour la porte
         labelWarnDoor = new JLabel("Attention : Porte ouverte !!!");
         labelWarnDoor.setFont(police);
         labelWarnDoor.setVisible(boolDoor);
         labelWarnDoor.setForeground(Color.red);
         
+        //label de warning pour la condensation
         labelWarnCond = new JLabel("Attention : Condensation !!!");
         labelWarnCond.setFont(police);
         labelWarnCond.setVisible(boolCond);
         labelWarnCond.setForeground(Color.red);
         
+        //label point de rosée
+        labelPointRosee = new JLabel("Point de rosée : 0 °C");
+        labelPointRosee.setFont(police);
+        
+        //label temp et hum 
         labelTitreTempIn = new JLabel("Intérieur :   ");
-        labelTitreTempIn.setFont(police);
-        
+        labelTitreTempIn.setFont(police);  
         labelTempIn = new JLabel("21 °C   ");
-        labelTempIn.setFont(police);
-        
+        labelTempIn.setFont(police);   
         labelHumpIn = new JLabel("50 %   ");
         labelHumpIn.setFont(police);
         
-        labelTitreTempOut= new JLabel("Exterieur :");
-        labelTitreTempOut.setFont(police);
-        
-        labelTempOut = new JLabel("12 °C");
-        labelTempOut.setFont(police);        
-        
+        //création de notre graphique
         final CombinedDomainXYPlot plotIn = new CombinedDomainXYPlot(new DateAxis("Temps"));
-        final CombinedDomainXYPlot plotOut = new CombinedDomainXYPlot(new DateAxis("Temps"));
         this.datasetsIn = new TimeSeriesCollection[SUBPLOT_COUNT_IN];
-        this.datasetsOut = new TimeSeriesCollection[SUBPLOT_COUNT_OUT];
-        
         String[] nameSeriesIn = {"Température","Humidité"};
-        String[] nameAxisIn = {"Température (°C)","pourcentage (%)"};
-        
+        String[] nameAxisIn = {"Température (°C)","Humidité (%)"};
         for (int i = 0; i < SUBPLOT_COUNT_IN; i++) {
             this.lastValueIn[i] = 100.0;
             final TimeSeries seriesIn = new TimeSeries(nameSeriesIn[i], Millisecond.class);
@@ -189,10 +167,48 @@ public class InterfaceGraphique extends JFrame implements Observer {
             subplotIn.setRangeGridlinePaint(Color.white);
             plotIn.add(subplotIn);
         }
+        final JFreeChart chartIn = new JFreeChart("", plotIn);
+        chartIn.setBorderPaint(Color.black);
+        chartIn.setBorderVisible(true);
+        chartIn.setBackgroundPaint(Color.white);
+        plotIn.setBackgroundPaint(Color.lightGray);
+        plotIn.setDomainGridlinePaint(Color.white);
+        plotIn.setRangeGridlinePaint(Color.white);
+        final ValueAxis axisIn = plotIn.getDomainAxis();
+        axisIn.setAutoRange(true);
+        axisIn.setFixedAutoRange(240000.0);
+        final ChartPanel chartPanelIn = new ChartPanel(chartIn);
+        chartPanelIn.setPreferredSize(new java.awt.Dimension(480, 300));
+        chartPanelIn.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         
+        //panel température intérieure
+        JPanel panTempIn = new JPanel();
+        panTempIn.setPreferredSize(new Dimension(490, 400));
+        panTempIn.add(labelTitreTempIn);
+        panTempIn.add(labelTempIn); 
+        panTempIn.add(labelHumpIn);
+        panTempIn.add(chartPanelIn);
+        panTempIn.add(labelWarnDoor);
+        panTempIn.add(labelPointRosee);
+        panTempIn.add(labelWarnCond);
+        panTempIn.setBorder(BorderFactory.createLineBorder(Color.black));  
+        
+        //on ajoute notre panel au container
+        container.add(panTempIn, BorderLayout.NORTH);
+    }
+    
+    private void initComposantExt(){
+        //labels température
+        labelTitreTempOut= new JLabel("Exterieur :");
+        labelTitreTempOut.setFont(police);
+        labelTempOut = new JLabel("12 °C");
+        labelTempOut.setFont(police);        
+        
+        //préparation de notre graphique
+        final CombinedDomainXYPlot plotOut = new CombinedDomainXYPlot(new DateAxis("Temps"));
+        this.datasetsOut = new TimeSeriesCollection[SUBPLOT_COUNT_OUT];
         String[] nameSeriesOut = {"Température"};
         String[] nameAxisOut = {"Température (°C)"};
-        
         for (int i = 0; i < SUBPLOT_COUNT_OUT; i++) {
             this.lastValueOut[i] = 100.0;
             final TimeSeries seriesOut = new TimeSeries(nameSeriesOut[i], Millisecond.class);
@@ -207,54 +223,19 @@ public class InterfaceGraphique extends JFrame implements Observer {
             subplotOut.setRangeGridlinePaint(Color.white);
             plotOut.add(subplotOut);
         }
-
-        final JFreeChart chartIn = new JFreeChart("", plotIn);
-        chartIn.setBorderPaint(Color.black);
-        chartIn.setBorderVisible(true);
-        chartIn.setBackgroundPaint(Color.white);
-        
         final JFreeChart chartOut = new JFreeChart("", plotOut);
         chartOut.setBorderPaint(Color.black);
         chartOut.setBorderVisible(true);
         chartOut.setBackgroundPaint(Color.white);
-        
-        plotIn.setBackgroundPaint(Color.lightGray);
-        plotIn.setDomainGridlinePaint(Color.white);
-        plotIn.setRangeGridlinePaint(Color.white);
-        
         plotOut.setBackgroundPaint(Color.lightGray);
         plotOut.setDomainGridlinePaint(Color.white);
         plotOut.setRangeGridlinePaint(Color.white);
-        
-        final ValueAxis axisIn = plotIn.getDomainAxis();
-        axisIn.setAutoRange(true);
-        axisIn.setFixedAutoRange(240000.0);  // 60 seconds
-        
+        final ChartPanel chartPanelOut = new ChartPanel(chartOut);
         final ValueAxis axisOut = plotOut.getDomainAxis();
         axisOut.setAutoRange(true);
-        axisOut.setFixedAutoRange(240000.0);  // 60 seconds
-        
-        final ChartPanel chartPanelIn = new ChartPanel(chartIn);
-        final ChartPanel chartPanelOut = new ChartPanel(chartOut);
-
-        
-        chartPanelIn.setPreferredSize(new java.awt.Dimension(480, 300));
-        chartPanelIn.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        
+        axisOut.setFixedAutoRange(240000.0);  
         chartPanelOut.setPreferredSize(new java.awt.Dimension(480, 200));
         chartPanelOut.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        
-        //panel température intérieure
-        JPanel panTempIn = new JPanel();
-        panTempIn.setPreferredSize(new Dimension(490, 400));
-        panTempIn.add(labelTitreTempIn);
-        panTempIn.add(labelTempIn); 
-        panTempIn.add(labelHumpIn);
-        panTempIn.add(chartPanelIn);
-        panTempIn.add(labelWarnDoor);
-        panTempIn.add(labelWarnCond);
-        panTempIn.setBorder(BorderFactory.createLineBorder(Color.black));
-        
         
         //panel température extérieure
         JPanel panTempOut = new JPanel();
@@ -264,33 +245,37 @@ public class InterfaceGraphique extends JFrame implements Observer {
         panTempOut.add(chartPanelOut);
         panTempOut.setBorder(BorderFactory.createLineBorder(Color.black));
         
-        container.add(panTempIn, BorderLayout.NORTH);
+        //ajout du panel au container
         container.add(panTempOut, BorderLayout.NORTH);
     }
-   
-    
+
     //Implémentation du pattern observer
     @Override
     public void update(String tempIn, String humIn, String tempOut) {
+        //envoi de la donnée vers l'arduino
         try {
             controler.envoiConsigne(consigne);
         } catch (IOException ex) {
             Logger.getLogger(InterfaceGraphique.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+        //Vérifie si les alertes doivent être affichée
         boolean boolDoorOld = boolDoor;
         boolDoor = controler.checkDoor();
         labelWarnDoor.setVisible(boolDoor);
-        
         boolean boolCondOld = boolCond;
         boolCond = controler.checkCondensation();
         labelWarnCond.setVisible(boolCond);
+        if (boolCond == true) {
+            labelPointRosee.setVisible(false);
+        } else {
+            labelPointRosee.setVisible(true);
+        }
         
+        //exécution du son en cas d'alerte
         if (boolDoor == true || boolCond == true) {
             if (boolDoorOld != boolDoor || boolCondOld != boolCond) {
-                System.out.println("erreur");
                 try {
-                    jsp = new JavaxSoundPlayer(Const._SOUND_PATH);
+                    jsp = new JavaxSoundPlayer(_SOUND_PATH);
                 } catch (Exception ex) {
                     Logger.getLogger(InterfaceGraphique.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -298,19 +283,22 @@ public class InterfaceGraphique extends JFrame implements Observer {
             } 
         }
         
+        //enregistrement des valeurs pour le graphique
         this.lastValueIn[0] = Double.valueOf(tempIn);
         this.lastValueIn[1] = Double.valueOf(humIn);
         this.lastValueOut[0] = Double.valueOf(tempOut);
         
+        //actualisation des labels 
         labelTempIn.setText(tempIn + " °C   ");
         labelHumpIn.setText(humIn + " %   ");
         labelTempOut.setText(tempOut + " °C   ");
+        labelPointRosee.setText("Point de rosée : " + controler.temp_rosee + " °C   ");
         
+        //enregistrement des graphiques
         for (int i = 0; i < SUBPLOT_COUNT_IN; i++) {
             final Millisecond now = new Millisecond();
             this.datasetsIn[i].getSeries(0).add(new Millisecond(), this.lastValueIn[i]);  
         }
-        
         for (int i = 0; i < SUBPLOT_COUNT_OUT; i++) {
             final Millisecond now = new Millisecond();
             this.datasetsOut[i].getSeries(0).add(new Millisecond(), this.lastValueOut[i]);  

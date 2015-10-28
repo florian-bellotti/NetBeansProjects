@@ -1,20 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package arduino.soundplayer;
 
-import arduino.data.control.Const;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
-
 
 
 public final class JavaxSoundPlayer {
@@ -44,7 +34,6 @@ public final class JavaxSoundPlayer {
            clip = AudioSystem.getClip();
  
            clip.open(AudioSystem.getAudioInputStream(file));
-           
         } catch (IOException e) {
            throw e;
         } catch (LineUnavailableException e) {
@@ -52,27 +41,9 @@ public final class JavaxSoundPlayer {
         }
    }
    
-    /**
-     * Reset chrono
-     */
-   /*private static void reset(){
-        if(!chrono.Reset()){
-            chrono.stop();
-            if(chrono.getSeconds() >= Const._SOUND_SEP){
-                played = Boolean.FALSE;
-                chrono.reset();
-            }
-        }
-   }*/
-   
    // Play or Re-play the sound effect from the beginning, by rewinding.
    public synchronized void play() {
        if(clip == null || !file.exists()) return;
-       
-        //reset();
-        //if(chrono.Reset())
-          //  chrono.start();
-        
         if (volume != Volume.MUTE) {
             if (clip.isRunning())
                 clip.stop();   // Stop the player if it is still running
