@@ -89,8 +89,11 @@ public class Temperature extends AbstractModel {
                 //this.tempIn  = Float.valueOf(this.resistance[0]); 
                 this.humIn = Float.valueOf(this.resistance[1]); 
                 this.resOut = Float.valueOf(this.resistance[2]); 
+                if (this.resistance.length >= 4) {
                 //this.test = Float.valueOf(this.resistance[3]); 
-                             
+                System.out.println(this.resistance[3]);
+                }
+                
                 this.resOut = (1 / (A + B * Math.log(this.resOut) + C * Math.pow(Math.log(this.resOut),3))) - 273.15;
                 this.tempOut.add((float)this.resOut);
                 
@@ -109,7 +112,8 @@ public class Temperature extends AbstractModel {
         }
     }
     
-    public synchronized void writeData(String data) throws IOException {
+    public void writeData(String data) throws IOException {
+        System.out.println(data);
         output.write(data.getBytes());
     }
 }

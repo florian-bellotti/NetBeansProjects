@@ -5,9 +5,14 @@
  */
 package com.sdz.view;
 
+import arduino.data.control.Const;
+import arduino.soundplayer.JavaxSoundPlayer;
 import com.sdz.controller.AbstractControler;
 import com.sdz.observer.Observer;
 import java.awt.*;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -46,6 +51,7 @@ public class InterfaceGraphique extends JFrame implements Observer {
     private JLabel labelWarnDoor = new JLabel();
     private JLabel labelWarnCond = new JLabel();
     private JSlider slider = new JSlider(JSlider.HORIZONTAL, 0, 30, 15);
+    private JavaxSoundPlayer jsp;
     
     
     //Définition du nombre de graphiques
@@ -70,6 +76,7 @@ public class InterfaceGraphique extends JFrame implements Observer {
     //Définition de notre police
     Font police = new Font("Arial", Font.BOLD, 20);
     
+    public int consigne = 15;
     
     public JLabel getLabelTempCons() {
         return labelTempCons;
@@ -77,7 +84,7 @@ public class InterfaceGraphique extends JFrame implements Observer {
     
     
     //constructeur de notre classe
-    public InterfaceGraphique(AbstractControler controler){                
+    public InterfaceGraphique(AbstractControler controler) throws Exception{                
         this.setSize(500, 750);
         this.setTitle("Pimp My Fridge");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -93,6 +100,7 @@ public class InterfaceGraphique extends JFrame implements Observer {
     
     //initialisation de notre panel de la consigne 
     private void initComposantConsigne(){
+        
         //Définition des labels
         labelTitreCons = new JLabel("Consigne :   ");
         labelTitreCons.setFont(police);
@@ -105,9 +113,18 @@ public class InterfaceGraphique extends JFrame implements Observer {
         slider.setMinorTickSpacing(1);
         slider.setPaintTicks(true);
         slider.setPaintLabels(true);
-        SliderListener sListener = new SliderListener();
-        sListener.setIG(this);
-        slider.addChangeListener(sListener);
+        slider.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                JSlider source = (JSlider)e.getSource();
+                consigne = source.getValue();
+                labelTempCons.setText(consigne + " °C   ");
+                try {
+                    controler.envoiConsigne(consigne);
+                } catch (IOException ex) {
+                    Logger.getLogger(InterfaceGraphique.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+         });
         
         
         //Définition de notre panel
@@ -124,8 +141,7 @@ public class InterfaceGraphique extends JFrame implements Observer {
     }
     
     
-    private void initComposant(){
-        
+    private void initComposant() throws Exception{
         labelWarnDoor = new JLabel("Attention : Porte ouverte !!!");
         labelWarnDoor.setFont(police);
         labelWarnDoor.setVisible(boolDoor);
@@ -256,11 +272,31 @@ public class InterfaceGraphique extends JFrame implements Observer {
     //Implémentation du pattern observer
     @Override
     public void update(String tempIn, String humIn, String tempOut) {
+        try {
+            controler.envoiConsigne(consigne);
+        } catch (IOException ex) {
+            Logger.getLogger(InterfaceGraphique.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        boolean boolDoorOld = boolDoor;
         boolDoor = controler.checkDoor();
         labelWarnDoor.setVisible(boolDoor);
         
+        boolean boolCondOld = boolCond;
         boolCond = controler.checkCondensation();
         labelWarnCond.setVisible(boolCond);
+        
+        if (boolDoor == true || boolCond == true) {
+            if (boolDoorOld != boolDoor || boolCondOld != boolCond) {
+                System.out.println("erreur");
+                try {
+                    jsp = new JavaxSoundPlayer(Const._SOUND_PATH);
+                } catch (Exception ex) {
+                    Logger.getLogger(InterfaceGraphique.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                jsp.play(); 
+            } 
+        }
         
         this.lastValueIn[0] = Double.valueOf(tempIn);
         this.lastValueIn[1] = Double.valueOf(humIn);
@@ -280,16 +316,4 @@ public class InterfaceGraphique extends JFrame implements Observer {
             this.datasetsOut[i].getSeries(0).add(new Millisecond(), this.lastValueOut[i]);  
         }
     }  
-}
-
-class SliderListener implements ChangeListener{
-    InterfaceGraphique obj;
-    public void stateChanged(ChangeEvent e) {
-        JSlider source = (JSlider)e.getSource();
-        obj.getLabelTempCons().setText(source.getValue() + " °C   ");
-        //Temperature.writeData(source.getValue() + "");
-    }
-    public void setIG(InterfaceGraphique ui) {
-        if(ui != null && obj == null) obj = ui; 
-    }
 }

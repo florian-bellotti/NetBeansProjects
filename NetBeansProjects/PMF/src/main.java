@@ -25,7 +25,7 @@ import org.jfree.util.Rotation;
  * @author Florian
  */
 public class main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         //Instanciation de notre modèle
         AbstractModel temp = new Temperature();
         //Création du contrôleur

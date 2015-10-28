@@ -74,5 +74,6 @@ public abstract class AbstractModel implements SerialPortEventListener {
         listObserver = new ArrayList<Observer>();
     } 
     
+    public abstract void writeData(String data) throws IOException;
 
 }

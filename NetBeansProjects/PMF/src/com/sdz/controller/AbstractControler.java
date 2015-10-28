@@ -6,6 +6,7 @@
 package com.sdz.controller;
 
 import com.sdz.model.AbstractModel;
+import java.io.IOException;
 
 /**
  *
@@ -21,4 +22,5 @@ public abstract class AbstractControler {
     
     public abstract boolean checkDoor();
     public abstract boolean checkCondensation();
+    public abstract void envoiConsigne(int consigne) throws IOException;
 }
