@@ -34,15 +34,44 @@ public class TemperatureControler extends AbstractControler {
                 bool = true;
             }
         }
-        if (nowTemp > 25.00) {
+        
+        
+        if (nowTemp >= 25.00) {
             bool = true;
         }
+        
+        
         return bool;
     }
     
     public boolean checkCondensation() {
         boolean bool = false;
+        double temp_rosee = 0.00;
+        double alpha = 0.00;
+        double a = 17.27;
+        double b = 237.7;
+        
+        
+        // humidité relative en nombre (donné par capteur)
+        double humidity = (temp.humIn) / 100;
                 
+        
+        // temperature donnée par capteur
+        float tempOut = temp.tempOut.get(temp.tempOut.size()-1);
+        float tempIn = temp.tempIn.get(temp.tempIn.size()-1);
+      
+
+        //Calcul du point de rosée
+        alpha = (a*tempOut)/(b+tempOut) + Math.log(humidity);   
+        temp_rosee = (b*alpha)/(a-alpha);
+      
+        
+        //si température intérieure est inf ou egal à température de rosé, alors ALERT ROUGE
+        if (tempIn <= temp_rosee){
+            bool = true;
+        }
+        
+        //return la valeur du boolean
         return bool;
     }
 

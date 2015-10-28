@@ -259,7 +259,7 @@ public class InterfaceGraphique extends JFrame implements Observer {
         boolDoor = controler.checkDoor();
         labelWarnDoor.setVisible(boolDoor);
         
-        boolean boolCond = controler.checkCondensation();
+        boolCond = controler.checkCondensation();
         labelWarnCond.setVisible(boolCond);
         
         this.lastValueIn[0] = Double.valueOf(tempIn);
